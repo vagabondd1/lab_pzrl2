@@ -73,7 +73,7 @@ bool check_replace(char *pattern, char *name_file) {
         return 0;
     }
 
-    FILE *file = fopen(name_file, "r+");
+    FILE *file = fopen(name_file, "r");
     if (!file) {
         printf("Ошибка открытия файла.\n");
         regfree(&regex);
@@ -91,7 +91,6 @@ bool check_replace(char *pattern, char *name_file) {
     unsigned int i = 0;
 
     while ((flag1 = getline(&curr_line, &len_line, file)) != -1) {
-        printf("Строка до замены: %s\n", curr_line);
         flag2 = 1;
         size_t new_len = len_line;
         char *current_pos = curr_line;
