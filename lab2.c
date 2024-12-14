@@ -311,3 +311,84 @@ bool check_remove(char *pattern, char *name_file)
     }
     return 1;
 }
+
+bool check_prefix(char *pattern,char *name_file)
+{
+    if (strncmp(pattern, "s/", 2) != 0)
+    {
+        printf("Строка не начинается с 's/'.\n");
+        return 0;
+    }
+
+    const char *scnd_slash = strchr(pattern + 2, '/');
+    if (!scnd_slash)
+    {
+        printf("Не найдена второй '/'.\n");
+        return 0;
+    }
+
+    const char *thrd_slash = strchr(scnd_slash + 1, '/');
+    if (!thrd_slash)
+    {
+        printf("Не найден третий '/'.\n");
+        return 0;
+    }
+    if (pattern[thrd_slash - pattern + 1] != '\0')
+    {
+        printf("%c", pattern[thrd_slash - pattern + 1]);
+        printf("После третьего '/' в строке есть что-то еще.\n");
+        return 0;
+    }
+    const char *frst_slash = strchr(pattern, '/');
+
+    size_t prefix_len = thrd_slash - (scnd_slash + 1);
+    char prefix[prefix_len + 1];
+    strncpy(prefix, scnd_slash + 1, prefix_len);
+    prefix[prefix_len] = '\0';
+
+    FILE *file = fopen(name_file, "r");
+    if (!file)
+    {
+        printf("Ошибка открытия файла.\n");
+        return 0;
+    }
+    int count = count_lines_in_file(name_file);
+    if (count == 0)
+    {
+        printf("Файл пустой.\n");
+        return 0;
+    }
+    char **mass_of_lines = (char **)calloc(count, sizeof(char *));
+    char *curr_line = NULL;
+    size_t len_line = 0;
+    int flag1, flag2;
+    unsigned int i = 0;
+
+    while ((flag1 = getline(&curr_line, &len_line, file)) != -1)
+    {
+        flag2 = 1;
+        size_t new_len = len_line;
+        char *result = (char *)malloc(new_len + prefix_len + 1);
+        if (!result)
+        {
+            printf("Не удалось выделить память.\n");
+            free(curr_line);
+            fclose(file);
+            return 0;
+        }
+        strncpy(result,prefix,prefix_len);
+        strcpy(result + prefix_len,curr_line);
+        printf("%s\n",result);
+        mass_of_lines[i++] = result;
+    }
+
+    free(curr_line);
+    fclose(file);
+    rewrite_file(mass_of_lines, name_file, count);
+    if (flag1 == -1 && flag2 != 1)
+    {
+        printf("Файл пуст или ошибка чтения.\n");
+        return 0;
+    }
+    return 1;
+}
