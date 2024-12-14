@@ -12,17 +12,20 @@ void rewrite_file(char ** mass_of_lines, const char *filename,int count)
     for (int i = 0; i < count; i++)
     {
         fprintf(file,"%s",mass_of_lines[i]);
+        free(mass_of_lines[i]);
     }
+    free(mass_of_lines);
+    fclose(file);
 }
 
-int count_lines_in_file(const char *filename) {
+size_t count_lines_in_file(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         perror("Ошибка при открытии файла");
         return -1; 
     }
 
-    int line_count = 0;
+    size_t line_count = 0;
     char ch;
 
     while ((ch = fgetc(file)) != EOF) {
@@ -87,7 +90,7 @@ bool check_replace(char *pattern, char *name_file) {
     char **mass_of_lines = (char **)calloc(count,sizeof(char *));
     char *curr_line = NULL;
     size_t len_line = 0;
-    int flag1, flag2,flag3;
+    int flag1, flag2;
     unsigned int i = 0;
 
     while ((flag1 = getline(&curr_line, &len_line, file)) != -1) {
@@ -97,7 +100,17 @@ bool check_replace(char *pattern, char *name_file) {
 
         while (regexec(&regex, current_pos, 1, pmatch, 0) == 0) {
             new_len += strlen(replacement) - (pmatch[0].rm_eo - pmatch[0].rm_so);
-            current_pos += pmatch[0].rm_eo;
+
+            if (pmatch[0].rm_so == pmatch[0].rm_eo) {
+                current_pos++;
+                if (*current_pos == '\0') {
+                    break;
+                }
+            } 
+            else 
+            {
+                current_pos += pmatch[0].rm_eo;
+            }
         }
 
         char *result = (char *)malloc(new_len + 1);
@@ -111,15 +124,23 @@ bool check_replace(char *pattern, char *name_file) {
 
         current_pos = curr_line;
         char *result_pos = result;
-        while (regexec(&regex, current_pos, 1, pmatch, 0) == 0) {
-            int before_match_len = pmatch[0].rm_so;
-            strncpy(result_pos, current_pos, before_match_len);
-            result_pos += before_match_len;
+    while (regexec(&regex, current_pos, 1, pmatch, 0) == 0) {
+        int before_match_len = pmatch[0].rm_so;
+        strncpy(result_pos, current_pos, before_match_len);
+        result_pos += before_match_len;
 
-            strcpy(result_pos, replacement);
-            result_pos += strlen(replacement);
+        strcpy(result_pos, replacement);
+        result_pos += strlen(replacement);
+
+        if (pmatch[0].rm_so == pmatch[0].rm_eo) {
+            current_pos++; 
+            if (*current_pos == '\0') {
+                break; 
+            }
+        } else {
             current_pos += pmatch[0].rm_eo;
         }
+    }
 
         strcpy(result_pos, current_pos);
         mass_of_lines[i++] = result;
@@ -133,6 +154,10 @@ bool check_replace(char *pattern, char *name_file) {
         printf("Файл пуст или ошибка чтения.\n");
         return 0;
     }
-
     return 1;
+}
+
+bool check_remove(char *pattern,char *name_file)
+{
+    return 0;
 }
