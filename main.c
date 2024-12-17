@@ -43,7 +43,7 @@ int main(int argc, char *argv[argc])
     }
     else if (strchr(pattern, '$'))
     {
-        // flag = check_suffix(pattern);
+        flag = check_suffix(pattern, str);
     }
     else
     {
