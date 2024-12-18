@@ -104,7 +104,7 @@ bool check_replace(char *pattern, char *name_file)
     char **mass_of_lines = (char **)calloc(count, sizeof(char *));
     char *curr_line = NULL;
     size_t len_line = 0;
-    int flag1, flag2;
+    int flag1, flag2 = 0;
     unsigned int i = 0;
 
     while ((flag1 = getline(&curr_line, &len_line, file)) != -1)
@@ -130,7 +130,14 @@ bool check_replace(char *pattern, char *name_file)
                 current_pos += pmatch[0].rm_eo;
             }
         }
-
+        if (!flag2)
+        {
+            printf("Нет совпадений.\n");
+            free(curr_line);
+            fclose(file);
+            regfree(&regex);
+            return 0;
+        }
         char *result = (char *)malloc(new_len + 1);
         if (!result)
         {
@@ -263,7 +270,14 @@ bool check_remove(char *pattern, char *name_file)
                 current_pos += pmatch[0].rm_eo;
             }
         }
-
+        if (!flag2)
+        {
+            printf("Нет совпадений.\n");
+            free(curr_line);
+            fclose(file);
+            regfree(&regex);
+            return 0;
+        }
         char *result = (char *)malloc(new_len + 1);
         if (!result)
         {
@@ -451,7 +465,6 @@ bool check_suffix(char *pattern, char *name_file)
         if (curr_line[flag1 - 1] == '\n')
         {
             flag3 = 1;
-            printf("log\n");
         }
         char *result = (char *)malloc(len_line + suffix_len);
         if (!result)

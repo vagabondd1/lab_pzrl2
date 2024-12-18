@@ -35,19 +35,22 @@ int main(int argc, char *argv[argc])
     bool flag;
     if (strchr(pattern, 'd') == 0 && strchr(pattern, '^') == 0 && strchr(pattern, '$') == 0)
     {
-        flag = check_replace(pattern, str);
+        check_replace(pattern, str);
     }
     else if (strchr(pattern, '^'))
     {
-        flag = check_prefix(pattern,str);
+        check_prefix(pattern,str);
     }
     else if (strchr(pattern, '$'))
     {
-        flag = check_suffix(pattern, str);
+        check_suffix(pattern, str);
     }
-    else
+    else if (strchr(pattern,'d'))
     {
-        flag = check_remove(pattern, str);
+        check_remove(pattern, str);
     }
-    return flag ? 0 : 1;
+    else {
+        printf("Ошибка в передаче 2 аргумента.\n");
+    }
+    return 0;
 }
